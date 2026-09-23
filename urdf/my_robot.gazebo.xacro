@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ============ Plugin de contrôle différentiel ============ -->
+  <gazebo>
+    <plugin filename="gz-sim-diff-drive-system"
+            name="gz::sim::systems::DiffDrive">
+    
+      <left_joint>lwheel_basejoint</left_joint>
+      <right_joint>rwheel_basejoint</right_joint>
+      <wheel_separation>${b + length}</wheel_separation>
+      <wheel_radius>${wheel_radius}</wheel_radius>
+      <odom_publish_frequency>30</odom_publish_frequency>
+      <topic>cmd_vel</topic>
+      <odom_topic>odom</odom_topic>
+      <frame_id>odom</frame_id>
+      <child_frame_id>footprint</child_frame_id>
+
+    </plugin>
+    
+  <plugin filename="gz-sim-joint-state-publisher-system"
+          name="gz::sim::systems::JointStatePublisher"/>
+ <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+  <render_engine>ogre2</render_engine>
+</plugin>
+  </gazebo>
+
+   <!-- ========================================================= -->
+  <!-- Paramètres LiDAR 2D                                        -->
+  <!-- ========================================================= -->
+  <xacro:property name="lidar_update_rate" value="10"/>
+  <!--le nombre des segments-->
+  <xacro:property name="lidar_samples" value="721"/>
+  <xacro:property name="lidar_min_angle" value="-3.141592653589793"/>
+  <xacro:property name="lidar_max_angle" value="3.141592653589793"/>
+  <xacro:property name="lidar_min_range" value="0.12"/>
+  <xacro:property name="lidar_max_range" value="12.0"/>
+  <xacro:property name="lidar_range_resolution" value="0.01"/>
+  <!--autour de quoi est le noise-->
+  <xacro:property name="lidar_noise_mean" value="0.0"/>
+  <!--l'incertitude-->
+  <xacro:property name="lidar_noise_stddev" value="0.01"/>
+
+
+
+
+
+
+
+
+  <!-- ============ Friction et couleur des roues motrices ============ -->
+  <gazebo reference="lwheel_link">
+    <material>Gazebo/Blue</material>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+
+  <gazebo reference="rwheel_link">
+    <material>Gazebo/Blue</material>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+
+  <!-- ============ Roue folle : faible friction pour qu'elle glisse librement ============ -->
+  <gazebo reference="fwheel_link">
+    <material>Gazebo/Blue</material>
+    <mu1>0.01</mu1>
+    <mu2>0.01</mu2>
+  </gazebo>
+
+  <!-- ============ Couleur du châssis ============ -->
+  <gazebo reference="base_link">
+    <material>Gazebo/Red</material>
+  </gazebo>
+ <!-- ========================================================= -->
+  <!-- 1) LiDAR 2D  ->  sensor_msgs/msg/LaserScan                 -->
+  <!-- ========================================================= -->
+  
+  <gazebo reference="lidar_link">
+
+  <sensor name="lidar_2d" type="gpu_lidar">
+
+    <pose>0 0 0 0 0 0</pose>
+
+    <topic>scan</topic>
+
+    <update_rate>${lidar_update_rate}</update_rate>
+
+    <always_on>true</always_on>
+
+    <visualize>true</visualize>
+
+    <lidar>
+
+      <scan>
+        <horizontal>
+          <samples>${lidar_samples}</samples>
+          <resolution>1</resolution>
+          <min_angle>${lidar_min_angle}</min_angle>
+          <max_angle>${lidar_max_angle}</max_angle>
+        </horizontal>
+      </scan>
+
+      <range>
+        <min>${lidar_min_range}</min>
+        <max>${lidar_max_range}</max>
+        <resolution>${lidar_range_resolution}</resolution>
+      </range>
+
+      <noise>
+        <type>gaussian</type>
+        <mean>${lidar_noise_mean}</mean>
+        <stddev>${lidar_noise_stddev}</stddev>
+      </noise>
+
+    </lidar>
+
+  </sensor>
+
+</gazebo>
+</robot>

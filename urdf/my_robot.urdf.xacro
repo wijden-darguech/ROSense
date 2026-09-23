@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+<robot name= "my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!--============ SECTION 1 : PROPRIÉTÉS ============ -->
+<xacro:property name="wheel_radius" value="0.06"/>
+<xacro:property name="length" value="0.03"/>
+<xacro:property name="r_lidar" value="0.1"/>
+<xacro:property name="l_lidar" value="0.04"/>
+<xacro:property name="a" value="0.5"/>
+<xacro:property name="b" value="0.6"/>
+<xacro:property name="c" value="0.3"/>
+<xacro:property name="radius_wheel_folle" value="0.025"/>
+<xacro:property name="d_body" value="1300"/>
+<xacro:property name="d_wheels" value="1000"/>
+
+<!--============ MATÉRIAUX ============ -->
+<material name="red">
+  <color rgba="1 0 0 1.0"/>
+</material>
+<material name="blue">
+  <color rgba="0 0 1 1.0"/>
+</material>
+<!--=======masses==========-->
+<xacro:property name="m_body" value="${d_body*a*b*c}"/>
+<xacro:property name="m_wheels" value="${d_wheels*pi*wheel_radius*wheel_radius*length}"/>
+<xacro:property name="m_lidar" value="${d_wheels*pi*r_lidar*r_lidar*l_lidar}"/>
+<xacro:property name="m_wheel_folle" value="${d_wheels*4/3*pi*radius_wheel_folle*radius_wheel_folle*radius_wheel_folle}"/>
+<!--===========inertias==========-->
+<xacro:macro name="inertia_box">
+<inertial>
+    <inertia ixx="${1/12*m_body*(b*b+c*c)}"
+             ixy="0"
+             ixz="0"
+             iyy="${1/12*m_body*(a*a+c*c)}"
+             iyz="0"
+             izz="${1/12*m_body*(a*a+b*b)}"/>
+    <origin xyz="0 0 ${c/2}" rpy="0 0 0"/>
+    <mass value="${m_body}"/>
+    </inertial>
+</xacro:macro>
+<xacro:macro name="inertia_cylinder">
+   <inertial>
+    <inertia ixx="${1/12*m_wheels*(3*wheel_radius*wheel_radius+length*length)}"
+             ixy="0"
+             ixz="0"
+             iyy="${1/12*m_wheels*(3*wheel_radius*wheel_radius+ length*length)}"
+             iyz="0"
+             izz="${1/2*m_wheels*wheel_radius*wheel_radius}"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="${m_wheels}"/>
+    </inertial>
+</xacro:macro>
+<xacro:macro name="inertia_lidar">
+   <inertial>
+    <inertia ixx="${1/12*m_lidar*(3*r_lidar*r_lidar+l_lidar*l_lidar)}"
+             ixy="0"
+             ixz="0"
+             iyy="${1/12*m_lidar*(3*r_lidar*r_lidar+ l_lidar*l_lidar)}"
+             iyz="0"
+             izz="${1/2*m_lidar*r_lidar*r_lidar}"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="${m_lidar}"/>
+    </inertial>
+</xacro:macro>
+<xacro:macro name="inertia_sphere">
+    <inertial>
+    <inertia ixx="${2/5*m_wheel_folle*radius_wheel_folle*radius_wheel_folle}"
+             ixy="0"
+             ixz="0"
+             iyy="${2/5*m_wheel_folle*radius_wheel_folle*radius_wheel_folle}"
+             iyz="0"
+             izz="${2/5*m_wheel_folle*radius_wheel_folle*radius_wheel_folle}"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="${m_wheel_folle}"/>
+    </inertial>
+</xacro:macro>
+<!-- =========== chasis====================== -->
+ <link name="base_link">
+    <visual>
+        <origin xyz="0 0 ${c/2}" rpy="0 0 0" />
+        <geometry>
+            <box size="${a} ${b} ${c}" />
+        </geometry>
+        <material name="red"/>
+        
+        
+    </visual>
+   <collision>
+        <geometry>
+            <box size="${a} ${b} ${c}" />
+        </geometry>
+        <origin xyz="0 0 ${c/2}" rpy="0 0 0" />
+    </collision>
+    <xacro:inertia_box/>
+ </link>
+<!-- ======== une frame réference ========= -->
+<link name="footprint">
+<origin xyz="0 0 0" rpy="0 0 0" />
+</link>
+<joint name="base_footprint" type="fixed">
+  <parent link="footprint"/>
+  <child link="base_link"/>
+  <origin xyz="0 0 0.05" rpy="0 0 0"/>
+</joint>
+<!-- =========== roue avant gauche====================== -->
+<link name="lwheel_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+            <cylinder radius="${wheel_radius}" length="${length}" />
+        </geometry>
+        <material name="blue"/>
+        
+    </visual>
+    <collision>
+        <geometry>
+            <cylinder radius="${wheel_radius}" length="${length}"/>
+        </geometry>
+    </collision>
+    <xacro:inertia_cylinder/>
+</link>
+<joint name="lwheel_basejoint" type="continuous">
+  <parent link="base_link"/>
+  <child link="lwheel_link"/>
+  <origin xyz="-${a/2.5} ${(b/2)+length/2} 0.01" rpy="-${pi/2} 0 0"/>
+  <axis xyz="0 0 1"/>
+</joint>
+<!-- =========== roue droite====================== -->
+<link name="rwheel_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+            <cylinder radius="${wheel_radius}" length="${length}" />
+        </geometry>
+        <material name="blue"/>
+        
+    </visual>
+    <collision>
+        <geometry>
+            <cylinder radius="${wheel_radius}" length="${length}"/>
+        </geometry>
+    </collision>
+    <xacro:inertia_cylinder/>
+</link>
+<joint name="rwheel_basejoint" type="continuous">
+  <parent link="base_link"/>
+  <child link="rwheel_link"/>
+  <origin xyz="-${a/2.5} -${(b/2)+length/2} 0.01" rpy="-${pi/2} 0 0"/>
+  <axis xyz="0 0 1"/>
+</joint>
+<!-- =========== roue devant====================== -->
+<link name="fwheel_link">
+    <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+            <sphere radius="${radius_wheel_folle}" />
+        </geometry>
+        <material name="blue"/>
+        
+    </visual>
+    <collision>
+        <geometry>
+            <sphere radius="${radius_wheel_folle}" />
+        </geometry>
+    </collision>
+    <xacro:inertia_sphere/>
+</link>
+<joint name="fwheel_basejoint" type="continuous">
+  <parent link="base_link"/>
+  <child link="fwheel_link"/>
+  <origin xyz="${a/2.5} 0 -${radius_wheel_folle}" rpy="0 0 0"/>
+  <axis xyz="0 1 0"/>
+</joint>
+<!--================lidar====================-->
+<link name="lidar_link">
+  <visual>
+   <origin xyz="0 0 0" rpy="0 0 0"/>
+   <geometry>
+    <cylinder radius="${r_lidar}" length="${l_lidar}"/>
+    </geometry>
+    <material name="blue"/>
+  </visual>
+  <collision>
+    <geometry>
+    <cylinder radius="${r_lidar}" length="${l_lidar}"/>
+    </geometry>
+  </collision> 
+  <xacro:inertia_lidar/>
+</link>
+<joint name="lidar_basejoint" type="revolute">
+  <parent link="base_link"/>
+  <child link="lidar_link"/>
+  <origin xyz="0 0 ${c+l_lidar/2}" rpy="0 0 0"/>
+  <axis xyz="0 0 1"/>
+  <limit lower="0" upper="0" effort="0" velocity="0"/>
+</joint>
+<xacro:include filename="$(find xacro_first)/urdf/my_robot.gazebo.xacro"/>
+</robot>
