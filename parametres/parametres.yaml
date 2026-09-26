@@ -37,3 +37,12 @@
   subscriber_queue: 5
   publisher_queue: 5
   lazy: false
+# IMU
+- ros_topic_name: "/imu"
+  gz_topic_name: "/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+  subscriber_queue: 20
+  publisher_queue: 20
+  lazy: false

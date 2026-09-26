@@ -20,9 +20,7 @@
     
   <plugin filename="gz-sim-joint-state-publisher-system"
           name="gz::sim::systems::JointStatePublisher"/>
- <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
-  <render_engine>ogre2</render_engine>
-</plugin>
+ 
   </gazebo>
 
    <!-- ========================================================= -->
@@ -40,8 +38,26 @@
   <xacro:property name="lidar_noise_mean" value="0.0"/>
   <!--l'incertitude-->
   <xacro:property name="lidar_noise_stddev" value="0.01"/>
-
-
+  <!-- ========================================================= -->
+  <!-- Paramètres IMU                                             -->
+  <!-- ========================================================= -->
+  <xacro:property name="imu_update_rate" value="100"/>
+  <xacro:property name="gyro_noise_mean" value="0.0"/>
+  <xacro:property name="gyro_noise_stddev" value="2.0e-4"/>
+  <xacro:property name="gyro_bias_mean" value="7.5e-6"/>
+  <xacro:property name="gyro_bias_stddev" value="8.0e-7"/>
+  <xacro:property name="accel_noise_mean" value="0.0"/>
+  <xacro:property name="accel_noise_stddev" value="1.7e-2"/>
+  <xacro:property name="accel_bias_mean" value="0.1"/>
+  <xacro:property name="accel_bias_stddev" value="0.001"/>
+<xacro:macro name="gaussian_noise_with_bias" params="mean stddev bias_mean bias_stddev">
+  <noise type="gaussian">
+    <mean>${mean}</mean>
+    <stddev>${stddev}</stddev>
+    <bias_mean>${bias_mean}</bias_mean>
+    <bias_stddev>${bias_stddev}</bias_stddev>
+  </noise>
+</xacro:macro>
 
 
 
@@ -118,4 +134,67 @@
   </sensor>
 
 </gazebo>
+  <!-- ========================================================= -->
+  <!-- 2) IMU  ->  sensor_msgs/msg/Imu                            -->
+  <!-- ========================================================= -->
+  <gazebo reference="imu_link">
+    <sensor name="imu_sensor" type="imu">
+      <pose>0 0 0 0 0 0</pose>
+      <topic>imu</topic>
+      
+      <update_rate>${imu_update_rate}</update_rate>
+      <always_on>true</always_on>
+      <visualize>false</visualize>
+      <imu>
+        <!-- Orientation exprimée dans un repère monde ENU -->
+        <orientation_reference_frame>
+          <localization>ENU</localization>
+        </orientation_reference_frame>
+
+        <!-- Vitesse angulaire (rad/s) -->
+        <angular_velocity>
+          <x>
+            <xacro:gaussian_noise_with_bias mean="${gyro_noise_mean}"
+                                            stddev="${gyro_noise_stddev}"
+                                            bias_mean="${gyro_bias_mean}"
+                                            bias_stddev="${gyro_bias_stddev}"/>
+          </x>
+          <y>
+            <xacro:gaussian_noise_with_bias mean="${gyro_noise_mean}"
+                                            stddev="${gyro_noise_stddev}"
+                                            bias_mean="${gyro_bias_mean}"
+                                            bias_stddev="${gyro_bias_stddev}"/>
+          </y>
+          <z>
+            <xacro:gaussian_noise_with_bias mean="${gyro_noise_mean}"
+                                            stddev="${gyro_noise_stddev}"
+                                            bias_mean="${gyro_bias_mean}"
+                                            bias_stddev="${gyro_bias_stddev}"/>
+          </z>
+        </angular_velocity>
+
+        <!-- Accélération linéaire (m/s^2) -->
+        <linear_acceleration>
+          <x>
+            <xacro:gaussian_noise_with_bias mean="${accel_noise_mean}"
+                                            stddev="${accel_noise_stddev}"
+                                            bias_mean="${accel_bias_mean}"
+                                            bias_stddev="${accel_bias_stddev}"/>
+          </x>
+          <y>
+            <xacro:gaussian_noise_with_bias mean="${accel_noise_mean}"
+                                            stddev="${accel_noise_stddev}"
+                                            bias_mean="${accel_bias_mean}"
+                                            bias_stddev="${accel_bias_stddev}"/>
+          </y>
+          <z>
+            <xacro:gaussian_noise_with_bias mean="${accel_noise_mean}"
+                                            stddev="${accel_noise_stddev}"
+                                            bias_mean="${accel_bias_mean}"
+                                            bias_stddev="${accel_bias_stddev}"/>
+          </z>
+        </linear_acceleration>
+      </imu>
+    </sensor>
+  </gazebo>
 </robot>

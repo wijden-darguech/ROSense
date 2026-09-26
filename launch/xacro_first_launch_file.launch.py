@@ -54,7 +54,9 @@ def generate_launch_description():
                 'gz_sim.launch.py'
             )
         ),
-        launch_arguments={'gz_args': '-s ' + world_file}.items()
+        launch_arguments={
+        'gz_args': '-r ' + world_file
+    }.items()
     )
 
     # =========================
